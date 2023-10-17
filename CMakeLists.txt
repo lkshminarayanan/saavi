@@ -10,4 +10,11 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(WITH_TESTS "Enable all the tests" ON)
+
+if(WITH_TESTS)
+  enable_testing()
+endif()
+
 add_subdirectory(src)
+add_subdirectory(tests)
