@@ -8,19 +8,23 @@
 class Saavi {
   std::fstream fs;
 
-  // enocdes the given key value into a desired format
-  const std::string encode_entry(const std::string &key,
-                                 const std::string &value);
-  const std::pair<std::string, std::string> decode_entry(
+  // encodes the given key value into a desired format
+  static const std::string encode_entry(const std::string &key,
+                                        const std::string &value);
+  // decodes the entry into key and value
+  static const std::pair<std::string, std::string> decode_entry(
       const std::string &entry);
 
-  // iterators for the file
-  // begin and end iterate from last to first entry, as scanning entries from
-  // first to last doesn't have much purpose
-  auto begin() { return FileReverseIterator(fs); }
-  auto end() const { return FileReverseIteratorEnd(); }
-
  public:
+  // Iterators to loop through all entries in the database.
+  // Note that old values are ignored and only the latest values are returned.
+  auto begin() {
+    // Pass the decode_entry member function as the decoder to be used by the
+    // iterator
+    return FileReverseIterator{fs, &Saavi::decode_entry};
+  }
+  auto end() const { return FileReverseIteratorEnd{}; }
+
   // Open the file if it exists or else, create new
   Saavi(const std::string &filename);
 

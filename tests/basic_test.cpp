@@ -123,11 +123,48 @@ TEST_F(BasicOperations, TestDelete) {
   saavi->Put("Key2", "Value222");
 
   // Update expected values
-
   expectedEntries.erase("Key1");
   expectedEntries.erase("Key9");
   expectedEntries["Key2"] = "Value222";
 
   // Verify all the values using get
   verifyEntries();
+}
+
+TEST_F(BasicOperations, TestIterator) {
+  // begin() should equal to end() when the file is empty
+  EXPECT_FALSE(saavi->begin() != saavi->end());
+
+  populateEntries();
+
+  // do some updates, deletions
+  saavi->Delete("Key2");
+  saavi->Put("Key1", "Value11");
+  saavi->Delete("Key9");
+  saavi->Put("Key2", "Value222");
+
+  // Update expected values
+  expectedEntries.erase("Key2");
+  expectedEntries.erase("Key9");
+  expectedEntries["Key1"] = "Value11";
+  expectedEntries["Key2"] = "Value222";
+
+  int keysReturnedByIterator = 0;
+  for (auto it = saavi->begin(); it != saavi->end(); ++it) {
+    keysReturnedByIterator++;
+    auto key = (*it).first;
+    auto value = (*it).second;
+    auto expectedEntry = expectedEntries.find(key);
+    const std::string expectedValue =
+        (expectedEntry != expectedEntries.end()) ? expectedEntry->second : "";
+    EXPECT_EQ(value, expectedValue);
+  }
+
+  // Verify that Put/Get still works after iterating
+  saavi->Put("Key1", "Value111");
+  EXPECT_EQ(saavi->Get("Key1"), "Value111");
+
+  EXPECT_EQ(expectedEntries.size(), keysReturnedByIterator)
+      << "Number of entries returned by the iterator doesn't match the "
+         "expected count";
 }

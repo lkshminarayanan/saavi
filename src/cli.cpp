@@ -25,11 +25,13 @@ std::unordered_map<std::string, SimpleClient::CommandExecutor *>
                              .syntax = "put <key> <value>",
                              .syntaxNote = "'key' can only be alphanumeric"}},
         {"get",
-         new CommandExecutor{.executorFunc = &SimpleClient::executeGet,
-                             .numberOfArgs = 1,
-                             .requiresInitialisedSaavi = true,
-                             .syntax = "get <key>",
-                             .syntaxNote = "'key' can only be alphanumeric"}},
+         new CommandExecutor{
+             .executorFunc = &SimpleClient::executeGet,
+             .numberOfArgs = 1,
+             .requiresInitialisedSaavi = true,
+             .syntax = "get <key>",
+             .syntaxNote = "'key' can be alphanumeric or '*' which would then "
+                           "print all the entries"}},
         {"delete",
          new CommandExecutor{.executorFunc = &SimpleClient::executeDelete,
                              .numberOfArgs = 1,
@@ -73,11 +75,24 @@ void SimpleClient::executePut(const std::vector<std::string> &args) {
 
 // Get value from the kvs
 void SimpleClient::executeGet(const std::vector<std::string> &args) {
-  const std::string &value = saavi->Get(args[0]);
-  if (value.length() == 0) {
-    std::cout << "Key not found" << std::endl;
+  auto key = args[0];
+  if (key == "*") {
+    // iterate and print all the entries
+    unsigned long numOfEntries = 0;
+    for (auto it = saavi->begin(); it != saavi->end(); ++it) {
+      auto entry = *it;
+      std::cout << entry.first << " : " << entry.second << std::endl;
+      numOfEntries++;
+    }
+    std::cout << "Total number of entries returned = " << numOfEntries
+              << std::endl;
   } else {
-    std::cout << value << std::endl;
+    const std::string &value = saavi->Get(args[0]);
+    if (value.length() == 0) {
+      std::cout << "Key not found" << std::endl;
+    } else {
+      std::cout << value << std::endl;
+    }
   }
 }
 

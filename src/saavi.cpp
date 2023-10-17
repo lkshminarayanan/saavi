@@ -1,8 +1,8 @@
 #include "saavi.h"
 
-#include <assert.h>
-
 #include <algorithm>
+#include <cassert>
+#include <functional>
 #include <iostream>
 
 #include "saavi_exception.h"
@@ -31,13 +31,6 @@ const std::string Saavi::encode_entry(const std::string &key,
   return key + "," + value + "\n";
 }
 
-void Saavi::Put(const std::string &key, const std::string &value) {
-  // seek to end of file and write the entry
-  fs.seekg(0, std::ios_base::end);
-  fs << encode_entry(key, value);
-  fs.flush();
-}
-
 const std::pair<std::string, std::string> Saavi::decode_entry(
     const std::string &entry) {
   // decode the comma separated string and key
@@ -46,13 +39,20 @@ const std::pair<std::string, std::string> Saavi::decode_entry(
   return std::make_pair(entry.substr(0, pos), entry.substr(pos + 1));
 }
 
+void Saavi::Put(const std::string &key, const std::string &value) {
+  // seek to end of file and write the entry
+  fs.seekg(0, std::ios_base::end);
+  fs << encode_entry(key, value);
+  fs.flush();
+}
+
 const std::string Saavi::Get(const std::string &key) {
   if (!string_is_valid_key(key)) {
     throw SaaviException("invalid key - only alphanumeric key supported");
   }
 
   for (auto it = begin(); it != end(); ++it) {
-    auto entry = decode_entry(*it);
+    auto entry = *it;
     if (entry.first == key) {
       return entry.second;
     }
