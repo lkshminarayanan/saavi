@@ -25,3 +25,7 @@ file(
 add_executable(saaviTests test_main.cpp ${TESTFILES})
 target_link_libraries(saaviTests GTest::gtest_main saavi)
 gtest_discover_tests(saaviTests)
+
+# Compile the benchmark tool
+add_executable(saaviBenchmarks benchmark.cpp)
+target_link_libraries(saaviBenchmarks saavi)
