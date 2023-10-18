@@ -20,6 +20,11 @@ class FileReverseIterator {
     return m_entry;
   }
 
+  const std::pair<std::string, unsigned long> getKeyAndOffset() const {
+    // return the key and the offset at which it was
+    return std::make_pair(m_entry.first, read_offset + 2);
+  }
+
   FileReverseIterator &operator++();
 
   bool operator!=(FileReverseIteratorEnd) const { return read_offset >= 0; }

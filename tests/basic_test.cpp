@@ -78,20 +78,7 @@ TEST_F(BasicOperations, TestPut) {
 }
 
 TEST_F(BasicOperations, TestGet) {
-  // Manually write csv entries and read back via saavi. Note that
-  // this needs to be updated if the encoding of entries changes.
-  std::ofstream file;
-  file.open(kvsFileName, std::ios::out);
-  ASSERT_TRUE(file.is_open())
-      << "Failed to open '" + kvsFileName + "' : " << strerror(errno);
-  for (int i = 0; i < numOfEntries; i++) {
-    auto key = "Key" + std::to_string(i);
-    auto value = "Value" + std::to_string(i);
-    expectedEntries[key] = value;
-    file << key << "," << value << "\n";
-  }
-  file.close();
-
+  populateEntries();
   verifyEntries();
 }
 

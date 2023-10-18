@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "file_iterators.h"
+#include "key_index.h"
 
 class Saavi {
   std::fstream fs;
@@ -15,6 +16,9 @@ class Saavi {
   static const std::pair<std::string, std::string> decode_entry(
       const std::string &entry);
 
+  // index struct
+  KeyIndex idx;
+
  public:
   // Iterators to loop through all entries in the database.
   // Note that old values are ignored and only the latest values are returned.
@@ -24,6 +28,8 @@ class Saavi {
     return FileReverseIterator{fs, &Saavi::decode_entry};
   }
   auto end() const { return FileReverseIteratorEnd{}; }
+
+  void rebuildIndexes();
 
   // Open the file if it exists or else, create new
   Saavi(const std::string &filename);

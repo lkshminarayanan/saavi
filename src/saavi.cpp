@@ -13,6 +13,8 @@ Saavi::Saavi(const std::string &filename) {
     // failed to open file
     throw SaaviException("failed to open file '" + filename + "'");
   }
+
+  rebuildIndexes();
 }
 
 bool string_is_valid_key(const std::string &str) {
@@ -39,11 +41,27 @@ const std::pair<std::string, std::string> Saavi::decode_entry(
   return std::make_pair(entry.substr(0, pos), entry.substr(pos + 1));
 }
 
+void Saavi::rebuildIndexes() {
+  // build the index
+  for (auto it = begin(); it != end(); ++it) {
+    auto entry = it.getKeyAndOffset();
+    idx.putKeyOffset(entry.first, entry.second);
+  }
+}
+
 void Saavi::Put(const std::string &key, const std::string &value) {
   // seek to end of file and write the entry
   fs.seekg(0, std::ios_base::end);
+
+  // note down the location to update the index
+  auto offset = fs.tellp();
+
+  // append entry to file
   fs << encode_entry(key, value);
   fs.flush();
+
+  // update index;
+  idx.putKeyOffset(key, offset);
 }
 
 const std::string Saavi::Get(const std::string &key) {
@@ -51,14 +69,19 @@ const std::string Saavi::Get(const std::string &key) {
     throw SaaviException("invalid key - only alphanumeric key supported");
   }
 
-  for (auto it = begin(); it != end(); ++it) {
-    auto entry = *it;
-    if (entry.first == key) {
-      return entry.second;
-    }
+  unsigned long offset;
+  if (!idx.getKeyOffset(key, offset)) {
+    // key not present
+    return "";
   }
 
-  return "";
+  // move to offset
+  fs.seekg(offset, std::ios_base::beg);
+  // read the entry
+  std::string entryStr;
+  std::getline(fs, entryStr);
+  // decode the entry and return
+  return decode_entry(entryStr).second;
 }
 
 void Saavi::Delete(const std::string &key) {
